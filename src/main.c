@@ -13,6 +13,8 @@ LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 
 #define APP_TEST_BLE            (1)
 #define APP_TEST_PWM            (0)
+#define APP_TEST_ADC            (1)
+#define APP_TEST_GPIO           (1)
 
 
 #if (APP_TEST_BLE != 0)
@@ -112,6 +114,85 @@ void pwm_custom_task(void *pvParameters)
     }
 }
 #endif /* End of (APP_TEST_PWM != 0) */
+
+#if (APP_TEST_ADC != 0)
+void adc_custom_task(void *pvParameters)
+{
+    // Read all ADC channels
+    if(__InitADC() != 0)
+    {
+        LOG_ERR("Failed to init ADC");
+    }
+    int adc_raw[8]={0};
+    int adc_voltage[8]={0};
+    while(1)
+    {
+        for(uint8_t idx=0; idx < 8; idx++)
+        {
+            adc_raw[idx] = hal__ADCRead(idx);
+            if(adc_raw[idx] < 0)
+            {
+                LOG_ERR("Failed to read ADC channel %d", idx);
+                continue;
+            }
+            adc_voltage[idx] = hal__ADCReadMV(idx);
+            if(adc_voltage[idx] < 0)
+            {
+                LOG_ERR("Failed to read ADC channel %d", idx);
+                continue;
+            }
+        }
+        // RAW: [%d %d %d %d %d %d %d %d]\n", adc_raw[0], adc_raw[1], adc_raw[2], adc_raw[3], adc_raw[4], adc_raw[5], adc_raw[6], adc_raw[7]
+        LOG_INF("ADC: [%d %d %d %d %d %d %d %d]\n", adc_voltage[0], adc_voltage[1], adc_voltage[2], adc_voltage[3], adc_voltage[4], adc_voltage[5], adc_voltage[6], adc_voltage[7]);
+        // mV: [%d %d %d %d %d %d %d %d]\n", adc_voltage[0], adc_voltage[1], adc_voltage[2], adc_voltage[3], adc_voltage[4], adc_voltage[5], adc_voltage[6], adc_voltage[7]
+        k_msleep(2000);
+    }
+}
+#endif /* End of (APP_TEST_ADC != 0) */
+
+#if (APP_TEST_GPIO!= 0)
+uint8_t io_test_pins[]={13, 11, 2, 15};
+void gpio_custom__task(void *pvParameters)
+{
+    // Test pin as outputs
+    for(uint8_t idx=0; idx < ARRAY_SIZE(io_test_pins); idx++)
+    {
+        hal__setState(io_test_pins[idx], 1);
+    }
+
+    for(uint8_t idx=0; idx < ARRAY_SIZE(io_test_pins); idx++)
+    {
+        hal__setLow(io_test_pins[idx]);
+        k_msleep(1000);
+    }
+
+    // Turn on each pin for 1 second and then of 1 every 1 sec
+    for(uint8_t idx=0; idx < ARRAY_SIZE(io_test_pins); idx++)
+    {
+        hal__setHigh(io_test_pins[idx]);
+        k_msleep(1000);
+    }
+
+    // Set test pins as input
+    for(uint8_t idx=0; idx < ARRAY_SIZE(io_test_pins) - 1; idx++)
+    {
+        hal__setState(io_test_pins[idx], 0);
+    }
+    hal__setState(io_test_pins[ARRAY_SIZE(io_test_pins)-1], 2);
+
+    while(1)
+    {
+        LOG_INF("============== GPIO input =====================");
+        // Read pin state
+        for(uint8_t idx=0; idx < ARRAY_SIZE(io_test_pins); idx++)
+        {
+            LOG_INF("Pin %d state: %d", io_test_pins[idx], hal__read(io_test_pins[idx]));
+        }
+        k_msleep(1000);
+        LOG_INF("============== GPIO input =====================\r\n ");
+    }
+}
+#endif /* End of (APP_TEST_GPIO!= 0) */
 
 void main(void)
 {
