@@ -2,10 +2,10 @@
 	pwm_pins {
 		compatible = "pwm-leds";
 		pwm0_pins: pwm0_pins {
-			pwms =	<&pwm0 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>,
-					<&pwm0 1 PWM_MSEC(20) PWM_POLARITY_NORMAL>,
-					<&pwm0 2 PWM_MSEC(20) PWM_POLARITY_NORMAL>,
-					<&pwm0 3 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			pwms =	<&pwm0 0 1000 PWM_POLARITY_NORMAL>,
+					<&pwm0 1 1000 PWM_POLARITY_NORMAL>,
+					<&pwm0 2 1000 PWM_POLARITY_NORMAL>,
+					<&pwm0 3 1000 PWM_POLARITY_NORMAL>;
 		};
 	};
 };

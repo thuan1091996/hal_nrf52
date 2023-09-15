@@ -12,6 +12,7 @@ LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 
 
 #define APP_TEST_BLE            (1)
+#define APP_TEST_PWM            (0)
 
 
 #if (APP_TEST_BLE != 0)
@@ -81,6 +82,36 @@ void ble_test(void)
     LOG_INF("============== BLE testing =====================");
 }
 #endif /* End of (APP_TEST_BLE != 0) */
+
+#if (APP_TEST_PWM != 0)
+int __InitPWM();
+int hal__setDutyCycle(uint8_t channel_num, uint16_t dutyCycle_tenth);
+
+void pwm_custom_task(void *pvParameters)
+{
+    __InitPWM();
+    while(1)
+    {
+        // Test PWM APIS with max duty = 1000%
+        // Increase the duty cycle of each pin 50% every 300ms
+        for(uint16_t duty = 0; duty <= 1000; duty += 10)
+        {
+            hal__setDutyCycle(0, duty);
+            hal__setDutyCycle(1, duty);
+            hal__setDutyCycle(2, duty);
+            hal__setDutyCycle(3, duty);
+            k_msleep(500);
+            if(duty == 1000)
+            {
+                k_msleep(2000);
+                duty = 0;
+            }
+            else if(duty == 0)
+                k_msleep(2000);
+        }
+    }
+}
+#endif /* End of (APP_TEST_PWM != 0) */
 
 void main(void)
 {
