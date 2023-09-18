@@ -21,11 +21,10 @@
 * Includes
 *******************************************************************************/
 
+#include <zephyr.h>
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/pwm.h>
-#include <zephyr.h>
-
 
 #include "hal.h"
 /******************************************************************************
@@ -37,12 +36,12 @@
 *******************************************************************************/
 #include "logging/log.h"
 #define MODULE_NAME			        hal_pwm
-#define MODULE_LOG_LEVEL	        LOG_LEVEL_DBG
+#define MODULE_LOG_LEVEL	        LOG_LEVEL_ERR
 LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 
 #define PWM0_DEFAULT_FLAGS          0
 #define PWM0_NUMB_CHANNELS	        4	
-#define PWM0_DEFAULT_PERIOD_USEC	1000 // 1KHz
+#define PWM0_DEFAULT_PERIOD_USEC	1000 // 1000 * 1us = 1ms ~ 1kHz
 /******************************************************************************
 * Module Typedefs
 *******************************************************************************/
@@ -76,7 +75,7 @@ uint16_t pwm0_period[PWM0_NUMB_CHANNELS] = {0};
  * @param period_usec The period in microseconds
  * @return 0 if successful, otherwise a (negative) error code.
  */
-int __hal__setPeriod(uint8_t channel_num, uint16_t period_usec)
+static int __hal__setPeriod(uint8_t channel_num, uint16_t period_usec)
 {
 	param_check((channel_num >= 0) && (channel_num < 4));
 	int status = pwm_pin_set_usec(pwm0_device[channel_num], pwm0_channel[channel_num], period_usec, 0, PWM0_DEFAULT_FLAGS);
@@ -111,14 +110,18 @@ int __InitPWM()
 }
 
 
-
+/**
+ * @brief PWM set duty cycle
+ * 
+ * @param channel_num: Valid values are 0 to 3, corresponding to the 4 PWM channels
+ * @param dutyCycle_tenth: Valid values are 0 to 1000, corresponding to 0% to 100% duty cycle
+ * @return int 0 if successful, otherwise a (negative) error code.
+ * @note: PWM0 channels [0 1 2 3] <=> [P0.13 P0.11 P0.2 P0.15]
+ * The PWM channel can be change to any GPIO pin via overlay file in zephyr directory
+ */
 int hal__setDutyCycle(uint8_t channel_num, uint16_t dutyCycle_tenth)
 {
 	param_check((channel_num >= 0) && (channel_num < 4));
 	param_check(dutyCycle_tenth <= 1000 && dutyCycle_tenth >= 0);
-	#if 0
-	 return led_set_brightness(pwm0_device[channel_num], 0, dutyCycle_tenth / 10);
-	#else
 	return pwm_pin_set_usec(pwm0_device[channel_num], pwm0_channel[channel_num], pwm0_period[channel_num], pwm0_period[channel_num] * dutyCycle_tenth / 1000, PWM0_DEFAULT_FLAGS);
-	#endif
 }
