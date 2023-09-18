@@ -33,9 +33,11 @@ extern "C" {
 
 
 int hal__init(); //Initialize HAL. Returns 0 on success, -1 on failure.
+int __InitGPIO();
+int __InitADC();
+int __InitPWM();
 int __InitUART();
 int __InitI2C();
-int __InitADC();
 
 /* TIMER_HELPER_FUNCTIONS */
 int hal__setDutyCycle(uint8_t pinNum, uint16_t dutyCycle_tenth); 
@@ -71,9 +73,6 @@ int hal__I2CWRITE(uint8_t i2c_num, uint8_t ADDR, uint8_t REG, uint8_t *data, uin
 /* ADC_HELPER_FUNCTIONS */
 int hal__ADCRead(uint8_t pin);
 int hal__ADCReadMV(uint8_t pin);
-
-/* Common functions */
-int hal__getStackSize(void); //Returns the stack size of the current task. Returns current stack size on success, -1 on failure.
 
 #ifdef __cplusplus
 }
