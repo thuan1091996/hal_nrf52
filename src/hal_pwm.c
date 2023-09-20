@@ -21,10 +21,10 @@
 * Includes
 *******************************************************************************/
 
-#include <zephyr.h>
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/pwm.h>
+#include <zephyr.h>
 
 #include "hal.h"
 /******************************************************************************
@@ -36,7 +36,7 @@
 *******************************************************************************/
 #include "logging/log.h"
 #define MODULE_NAME			        hal_pwm
-#define MODULE_LOG_LEVEL	        LOG_LEVEL_ERR
+#define MODULE_LOG_LEVEL	        LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 
 #define PWM0_DEFAULT_FLAGS          0
@@ -69,13 +69,26 @@ uint16_t pwm0_period[PWM0_NUMB_CHANNELS] = {0};
 /******************************************************************************
 * Functions definitions
 *******************************************************************************/
+int __InitPWM()
+{
+	for (uint8_t idx = 0; idx < ARRAY_SIZE(pwm0_device); idx++)
+	{
+		if (!device_is_ready(pwm0_device[idx]))
+		{
+			LOG_ERR("Error: PWM device %s is not ready\n", pwm0_device[idx]->name);
+			return FAILURE;
+		}
+	}
+	LOG_INF("Init PWM0 success");
+	return SUCCESS;
+}
 /**
  * @brief Set the period of a PWM channel
  * @param channel_num The channel number [0, 3]
  * @param period_usec The period in microseconds
  * @return 0 if successful, otherwise a (negative) error code.
  */
-static int __hal__setPeriod(uint8_t channel_num, uint16_t period_usec)
+int __hal__setPeriod(uint8_t channel_num, uint16_t period_usec)
 {
 	param_check((channel_num >= 0) && (channel_num < 4));
 	int status = pwm_pin_set_usec(pwm0_device[channel_num], pwm0_channel[channel_num], period_usec, 0, PWM0_DEFAULT_FLAGS);
@@ -88,26 +101,6 @@ static int __hal__setPeriod(uint8_t channel_num, uint16_t period_usec)
 	return SUCCESS;
 }
 
-int __InitPWM()
-{
-	for (uint8_t idx = 0; idx < ARRAY_SIZE(pwm0_device); idx++)
-	{
-		if (!device_is_ready(pwm0_device[idx]))
-		{
-			LOG_ERR("Error: PWM device %s is not ready\n", pwm0_device[idx]->name);
-			return FAILURE;
-		}
-		int status = __hal__setPeriod(idx, PWM0_DEFAULT_PERIOD_USEC);
-		if (status != SUCCESS)
-		{
-			LOG_ERR("Error: Failed to set period to %d (us) for channel %d\n", PWM0_DEFAULT_PERIOD_USEC, idx);
-			return FAILURE;
-		}
-		
-	}
-	LOG_INF("Init PWM0 success");
-	return SUCCESS;
-}
 
 
 /**
@@ -123,5 +116,16 @@ int hal__setDutyCycle(uint8_t channel_num, uint16_t dutyCycle_tenth)
 {
 	param_check((channel_num >= 0) && (channel_num < 4));
 	param_check(dutyCycle_tenth <= 1000 && dutyCycle_tenth >= 0);
+
+	//Check if first time called (period haven't set yet)
+	if(pwm0_period[channel_num] == 0)
+	{
+		int status = __hal__setPeriod(channel_num, PWM0_DEFAULT_PERIOD_USEC);
+		if (status != SUCCESS)
+		{
+			LOG_ERR("Error: Failed to set period to %d (us) for channel %d\n", PWM0_DEFAULT_PERIOD_USEC, channel_num);
+			return FAILURE;
+		}
+	}
 	return pwm_pin_set_usec(pwm0_device[channel_num], pwm0_channel[channel_num], pwm0_period[channel_num], pwm0_period[channel_num] * dutyCycle_tenth / 1000, PWM0_DEFAULT_FLAGS);
 }

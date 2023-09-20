@@ -52,11 +52,7 @@ static const struct device *gpio0_device = DEVICE_DT_GET(DT_NODELABEL(gpio0));
 *******************************************************************************/
 int __InitGPIO(void)
 {
-    if (device_is_ready(gpio0_device))
-    {
-        LOG_INF("GPIO0 is ready");
-    }
-    else
+    if (!device_is_ready(gpio0_device))
     {
         LOG_ERR("GPIO0 is not ready");
         return FAILURE;

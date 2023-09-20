@@ -4,7 +4,7 @@
 - platform-nordicnrf52 @10.1 (ZephyrRTOS) v2.7.1
 
 ## PWM0 channels 
-- [0 1 2 3] ~ [P0.13 P0.11 P0.2 P0.15] 
+- [0 1 2 3] ~ [P0.2 P0.11 P0.14 P0.15] 
 - The PWM channel can be change to any GPIO pin via overlay file in zephyr directory
 
 ## ADC channels 
