@@ -6,29 +6,6 @@
 #define MODULE_LOG_LEVEL	        LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 
-int hal__init()
-{
-    int status;
-    status = __InitGPIO();
-    if(status != SUCCESS)
-    {
-        LOG_ERR("GPIO init failed");
-        return FAILURE;
-    }
-    status = __InitADC();
-    if(status != SUCCESS)
-    {
-        LOG_ERR("ADC init failed");
-        return FAILURE;
-    }
-    status = __InitPWM();
-    if(status != SUCCESS)
-    {
-        LOG_ERR("PWM init failed");
-        return FAILURE;
-    }
-    return SUCCESS;
-}
 
 void main(void)
 {
