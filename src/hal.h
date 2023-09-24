@@ -38,7 +38,7 @@ int __InitUART();
 int __InitI2C();
 int __InitADC();
 int __InitPWM();
-
+int __InitBLE();
 /* TIMER_HELPER_FUNCTIONS */
 int hal__setDutyCycle(uint8_t pinNum, uint16_t dutyCycle_tenth); 
 //Set Duty Cycle, in tenths of percent. For Example, Passing (1, 50) will set Timer 1 Channel 1 to 5.0%. Returns 0 on success, -1 on failure.
@@ -77,7 +77,8 @@ int hal__ADCReadMV(uint8_t pin);
 
 /* Common functions */
 int hal__getStackSize(void); //Returns the stack size of the current task. Returns current stack size on success, -1 on failure.
-
+void System_EnableResetPin(void);
+void System_DisableResetPin(void);
 #ifdef __cplusplus
 }
 #endif
