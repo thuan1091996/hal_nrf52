@@ -34,7 +34,7 @@
 #define MODULE_LOG_LEVEL	        LOG_LEVEL_INF
 LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 
-#define ADV_DEFAULT_DEVICE_NAME     "nRF52-BLE"
+#define ADV_DEFAULT_DEVICE_NAME     CONFIG_BT_DEVICE_NAME
 #define ADV_PACKET_MAX_LEN          (29)
 #define ADV_NAME_MAX_LEN            (29)
 #define BLE_CONFIG_ADV_NAME         (1)     /* 1 -> Include ADV name in the ADC packet*/

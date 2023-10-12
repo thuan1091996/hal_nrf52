@@ -66,7 +66,7 @@ int __InitBLE(void)
     }
     ble_custom_service_init(&custom_service_app);
 
-    if (ble_set_adv_name("MYCUSTOM_NAME") != SUCCESS)
+    if (ble_set_adv_name("nRF52DK") != SUCCESS)
     {
         LOG_ERR("BLE set adv name failed");
     }
