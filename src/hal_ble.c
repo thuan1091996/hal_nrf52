@@ -11,6 +11,8 @@
 #define MODULE_LOG_LEVEL	        LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 
+#define BLE_CONFIG_ALWAYS_ADV               (1)     /* 1 -> Always advertise */
+
 void* char1_read_cb(void* p_data, void* p_len)
 {
     static char default_char_value[]="CHAR1_PAYLOAD";
@@ -56,10 +58,28 @@ ble_custom_gatt_cb_t custom_service_app =
     .custom_char5_write_cb = &char5_write_cb,
 };
 
+
+#if (BLE_CONFIG_ALWAYS_ADV == 1)
+void app_ble_disconnect_cb(void)
+{
+    LOG_INF("on ble_disconnect_cb");
+    ble_adv_start();
+}
+
+ble_callback_t app_ble_callbacks = {
+    .ble_disconnected_cb = &app_ble_disconnect_cb,
+};
+
+#endif /* End of (BLE_CONFIG_ALWAYS_ADV == 1) */
+
 int __InitBLE(void)
 {
     LOG_INF("============== BLE testing =====================");
+#if (BLE_CONFIG_ALWAYS_ADV == 1)
+    if ( ble_init(&app_ble_callbacks) != SUCCESS )
+#else /* !(BLE_CONFIG_ALWAYS_ADV == 1) */
     if ( ble_init(NULL) != SUCCESS )
+#endif /* End of (BLE_CONFIG_ALWAYS_ADV == 1) */
     {
         LOG_ERR("BLE init failed");
         return FAILURE;
