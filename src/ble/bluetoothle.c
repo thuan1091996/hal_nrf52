@@ -47,6 +47,8 @@ LOG_MODULE_REGISTER(MODULE_NAME, MODULE_LOG_LEVEL);
 /******************************************************************************
 * Module Variable Definitions
 *******************************************************************************/
+volatile static bool is_advertising=false;
+
 static char ADV_NAME[ADV_NAME_MAX_LEN] = ADV_DEFAULT_DEVICE_NAME;
 static struct bt_data ADV_DATA[] = 
 {
@@ -65,6 +67,16 @@ static ble_callback_t ble_cb_app = {
 /******************************************************************************
 * Static Function Definitions
 *******************************************************************************/
+static bool ble_is_advertising(void)
+{
+    return is_advertising;
+}
+
+static void ble_set_advertising(bool is_adv)
+{
+    is_advertising = is_adv;
+}
+
 static void on_ble_connect(struct bt_conn *conn, uint8_t err)
 {
 	if(err) 
@@ -94,11 +106,18 @@ static void on_ble_disconnect(struct bt_conn *conn, uint8_t reason)
 *******************************************************************************/
 int ble_adv_start(void)
 {
+    if(ble_is_advertising())
+    {
+        LOG_INF("Advertising already started\n");
+        return SUCCESS;
+    }
+
 	int errorcode = bt_le_adv_start(BT_LE_ADV_CONN, ADV_DATA, ARRAY_SIZE(ADV_DATA), NULL, 0);
     if (errorcode) {
         LOG_ERR("Couldn't start advertising (err = %d)", errorcode);
         return errorcode;
     }
+    ble_set_advertising(true);
     LOG_INF("Advertising successfully started\n");
     if(ble_cb_app.ble_adv_started_cb != NULL)
     {
@@ -109,11 +128,17 @@ int ble_adv_start(void)
 
 int ble_adv_stop(void)
 {
+    if(!ble_is_advertising())
+    {
+        LOG_INF("Advertising already stopped\n");
+        return SUCCESS;
+    }
     int errorcode = bt_le_adv_stop();
     if (errorcode) {
         LOG_ERR("Couldn't stop advertising (err = %d)", errorcode);
         return errorcode;
     }
+    ble_set_advertising(false);
     LOG_INF("Advertising successfully stopped\n");
     if(ble_cb_app.ble_adv_stopped_cb != NULL)
     {
@@ -170,7 +195,14 @@ int ble_set_adv_name(char* p_name)
             ADV_DATA[index].data_len = strlen(p_name);
             memcpy((void *)ADV_DATA[index].data, p_name, strlen(p_name));
             LOG_INF("BLE name set to %s", p_name);
-            return bt_le_adv_update_data(ADV_DATA, ARRAY_SIZE(ADV_DATA), NULL, 0);
+            if(ble_is_advertising())
+            {
+                return bt_le_adv_update_data(ADV_DATA, ARRAY_SIZE(ADV_DATA), NULL, 0);
+            }
+            else
+            {
+                return SUCCESS;
+            }
         }
     }
     LOG_ERR("Couldn't find BT_DATA_NAME_COMPLETE in ADV_DATA");

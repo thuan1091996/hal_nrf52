@@ -69,7 +69,6 @@ int __InitBLE(void)
     if (ble_set_adv_name("MYCUSTOM_NAME") != SUCCESS)
     {
         LOG_ERR("BLE set adv name failed");
-        return FAILURE;
     }
     
     if (ble_adv_start() != SUCCESS)
